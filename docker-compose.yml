@@ -1,0 +1,40 @@
+services:
+  app:
+    build: .
+    environment:
+      PORT: "3000"
+      SMTP_HOST: smtp-relay
+      SMTP_PORT: "25"
+      SMTP_SECURE: "false"
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-no-reply@makerspace.ovtg.de}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - smtp-relay
+
+  smtp-relay:
+    build:
+      context: .
+      dockerfile: docker/smtp-relay/Dockerfile
+    environment:
+      MAILNAME: ${MAILNAME:-makerspace.ovtg.de}
+      RELAYHOST: smtp.protonmail.ch
+      RELAYPORT: "587"
+      RELAYUSERNAME: ${RELAYUSERNAME:-}
+      RELAYPASSWORD: ${RELAYPASSWORD:-}
+      RELAYUSERNAME_FILE: /run/secrets/relay_username
+      RELAYPASSWORD_FILE: /run/secrets/relay_password
+    expose:
+      - "25"
+    secrets:
+      - relay_username
+      - relay_password
+
+secrets:
+  relay_username:
+    file: ./secrets/relay_username
+  relay_password:
+    file: ./secrets/relay_password

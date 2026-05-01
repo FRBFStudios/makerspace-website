@@ -9,3 +9,10 @@ commits.sh
 
 # pre-commit
 .pre-commit-config.yaml
+
+# Local env / secrets
+.env
+secrets/
+
+# Local agent instructions (keep untracked)
+AGENTS.md
