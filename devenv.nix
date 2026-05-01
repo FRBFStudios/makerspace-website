@@ -26,8 +26,58 @@
   };
 
   packages = [
-    pkgs.nodejs
+    pkgs.nodejs_22
+    pkgs.docker
+    pkgs.docker-compose
   ];
+
+  tasks = {
+    "mksp:deploy_init" = {
+      exec = ''
+        set -eu
+
+        if [ ! -f .env ]; then
+          if [ -f .env.example ]; then
+            cp .env.example .env
+            echo "Created .env from .env.example"
+          else
+            echo "Missing .env.example; cannot create .env"
+            exit 1
+          fi
+        else
+          echo ".env already exists"
+        fi
+
+        mkdir -p secrets
+        if [ ! -f secrets/relay_username ]; then
+          printf '%s' 'user@example.com' > secrets/relay_username
+          echo "Created secrets/relay_username"
+        fi
+        if [ ! -f secrets/relay_password ]; then
+          printf '%s' 'replace-me' > secrets/relay_password
+          echo "Created secrets/relay_password"
+        fi
+        chmod 600 secrets/relay_username secrets/relay_password
+      '';
+    };
+
+    "mksp:deploy_validate" = {
+      exec = ''
+        set -eu
+        test -f .env || { echo "Missing .env (copy from .env.example)"; exit 1; }
+        test -f secrets/relay_username || { echo "Missing secrets/relay_username"; exit 1; }
+        test -f secrets/relay_password || { echo "Missing secrets/relay_password"; exit 1; }
+      '';
+    };
+
+    "mksp:deploy" = {
+      after = ["mksp:deploy_validate"];
+      exec = ''
+        set -eu
+        docker compose up -d --build
+      '';
+    };
+  };
 
   enterShell = ''
     if [ ! -f package.json ]; then
