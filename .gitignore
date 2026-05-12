@@ -16,3 +16,7 @@ secrets/
 
 # Local agent instructions (keep untracked)
 AGENTS.md
+
+*.tar
+*.tar.gz
+*.zip
